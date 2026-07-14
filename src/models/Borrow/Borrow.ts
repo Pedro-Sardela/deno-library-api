@@ -37,20 +37,41 @@ class BorrowSchemaClass extends BaseSchema {
             },
             dueDate: { 
                 type: Date,
-                validate: {
-                    validator: (value: Date) => is.date(value),
-                    message: 'formato de data inválido'
-                },
+                validate: [
+                    {
+                        validator: (value: Date) => is.date(value),
+                        message: 'formato de data inválido'
+                    },
+                    {
+                        validator: function(this: any, value: Date) {
+                            if(!this.borrowDate) return true; // Se não tem data de empréstimo, pula para não quebrar
+                            return value > this.borrowDate
+                        },
+                        message: 'A data prevista de devolução (dueDate) deve ser posterior à data do empréstimo.'
+                    }
+                ],
                 required: [true, 'A data de devolução deve ser informada']
             },
             returnDate: { 
                 type: Date,
-                validate: {
-                    validator: (value: Date) => is.date(value),
+                default: null,
+                validate: [
+                {
+                    validator: (value: Date | null) => {
+                        if (value === null) return true;
+                        return is.date(value);
+                    },
                     message: 'formato de data inválido'
                 },
-                default: null
-             },
+                {
+                    validator: function(this: any, value: Date | null) {
+                        if(!value || !this.borrowDate) return true;
+                        return value >= this.borrowDate;
+                    },
+                    message: "A data de devolução não deve ser anterior a data de empréstimo"
+                }
+            ],
+            },
             status: { 
                 type: String,
                 enum: ["borrowed", "returned"], 

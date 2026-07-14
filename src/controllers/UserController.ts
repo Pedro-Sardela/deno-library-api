@@ -1,11 +1,13 @@
 import { UserService } from "../services/UserService.ts";
 import { UserRules } from "../models/User/UserRules.ts";
 import { NextFunction, Request, Response } from 'express';
+import { UserRepository } from "../models/User/UserRepository.ts";
+import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
 
 
 class UserController {
 	constructor(
-		private service = new UserService(),
+		private service = new UserService(new UserRepository(), new BorrowRepository()),
         private rules = new UserRules()
 	){
         this.create = this.create.bind(this);

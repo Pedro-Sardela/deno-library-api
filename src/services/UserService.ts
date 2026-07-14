@@ -2,6 +2,8 @@ import { IUser } from "../models/User/IUser.ts";
 import { UserRepository } from "../models/User/UserRepository.ts";
 import bcrypt from 'bcrypt';
 import { throwlhos } from "../globals/Throwlhos.ts";
+import { ClientSession } from 'mongoose';
+import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
 
 async function hashPassword(password: string): Promise<string> {
     const saltRounds = 12;
@@ -10,11 +12,14 @@ async function hashPassword(password: string): Promise<string> {
 
 class UserService {
     private repository: UserRepository;
+    private borrowRepository: BorrowRepository;
 
     constructor(
-        repository = new UserRepository()
+        repository: UserRepository,
+        borrowRepository: BorrowRepository
     ){
         this.repository = repository;
+        this.borrowRepository = borrowRepository;
     }
 
     async create(data:IUser){
@@ -51,6 +56,10 @@ class UserService {
         return user
 	}
 
+    async findByIdWithSession(userId: string, session: ClientSession) {
+        return this.repository.findByIdWithSession(userId, session);
+    }
+
     async update(
 		id:string,
 		data: Partial<IUser>
@@ -68,12 +77,16 @@ class UserService {
 	}
 
 	async delete(id: string) {
-    const user = await this.repository.deleteById(id);
-    if (!user) {
-        throw throwlhos.err_notFound("Usuário não encontrado");
+        const userBorrows = await this.borrowRepository.findByUserId(id);
+        const hasActiveBorrow = userBorrows.some(borrow => borrow.status === "borrowed");
+        if(hasActiveBorrow) throw throwlhos.err_badRequest("Não é possível remover um usuário com empréstimos ativos");
+
+        const user = await this.repository.deleteById(id);
+        if (!user) {
+            throw throwlhos.err_notFound("Usuário não encontrado");
+        }
+        return user;
     }
-    return user;
-}
 }
 
 export { UserService };

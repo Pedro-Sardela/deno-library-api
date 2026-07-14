@@ -1,10 +1,12 @@
+import { BookRepository } from "../models/Book/BookRepository.ts";
 import { BookRules } from "../models/Book/BookRules.ts";
+import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
 import { BookService } from "../services/BookService.ts";
 import { NextFunction, Request, Response } from 'express';
 
 class BookController {
     constructor(
-        private service = new BookService(),
+        private service = new BookService(new BookRepository(), new BorrowRepository()),
         private rules = new BookRules(),
     ){
         this.create = this.create.bind(this);

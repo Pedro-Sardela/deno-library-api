@@ -1,7 +1,7 @@
 import { BaseRepository } from '../../base/BaseRepository.ts';
 import { UserSchema } from './User.ts';
 import { IUser } from './IUser.ts';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { LibraryDB } from '../../database/db/libraryDB.ts';
 
 class UserRepository extends BaseRepository<IUser> {
@@ -12,6 +12,9 @@ class UserRepository extends BaseRepository<IUser> {
 		),
 	) {
 		super(model);
+	}
+	async findByIdWithSession(id: string, session: ClientSession) {
+		return this.model.findById(id, null, { session });
 	}
 }
 

@@ -1,14 +1,19 @@
 import { IBook } from "../models/Book/IBook.ts";
 import { BookRepository } from "../models/Book/BookRepository.ts";
 import { throwlhos } from "../globals/Throwlhos.ts";
+import { ClientSession } from 'mongoose';
+import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
 
 class BookService {
     private repository: BookRepository;
+    private borrowRepository: BorrowRepository;
 
     constructor(
-        repository = new BookRepository()
+        repository: BookRepository,
+        borrowRepository: BorrowRepository
     ){
         this.repository = repository;
+        this.borrowRepository = borrowRepository;
     }
 
     async create(data:IBook){
@@ -49,6 +54,10 @@ class BookService {
         return book;
     }
 
+    async findByIdWithSession(id: string, session: ClientSession) {
+        return this.repository.findByIdWithSession(id, session);
+    }
+
     async patch(id: string, data: Partial<IBook>) {
 
         if (data.isbn) {
@@ -76,6 +85,11 @@ class BookService {
     }
 
 	async delete(id: string) {
+        const bookBorrows = await this.borrowRepository.findByBookId(id);
+        const hasActiveBorrow = bookBorrows.some(borrow => borrow.status === "borrowed");
+        if(hasActiveBorrow) throw throwlhos.err_badRequest("Não é possível remover um livro com empréstimos ativos");
+
+
         const book = await this.repository.deleteById(id);
         if (!book) {
             throw throwlhos.err_notFound("Livro não encontrado");
@@ -127,45 +141,23 @@ class BookService {
         });
     }
 
-    // async borrow(id: string) {
-    //     const book = await this.findById(id);
+    async borrow(id: string, session: ClientSession) {
+        const book = await this.repository.findByIdWithSession(id, session);
+        if(!book) throw throwlhos.err_notFound("Livro não encontrado");
 
-    //     if(!book){
-    //         throw throwlhos.err_notFound("Livro não encontrado");
-    //     }
+        if (book.available < 1) throw throwlhos.err_badRequest("Não restam livros disponíveis para empréstimo");
 
-    //     if (book.available < 1) {
-    //         throw throwlhos.err_badRequest(
-    //             "Não há exemplares disponíveis."
-    //         );
-    //     }
+        return this.repository.borrowOne(id, session);
+    }
+    
+    async return(id: string, session: ClientSession) {
+        const book = await this.repository.findByIdWithSession(id, session);
+        if(!book) throw throwlhos.err_notFound("Livro não encontrado");
 
-    //     return this.repository.updateById(id, {
-    //         $inc: {
-    //             available: -1,
-    //         },
-    //     });
-    // }
+        if (book.available === book.quantity) throw throwlhos.err_badRequest("Todos os livros já foram devolvidos");
 
-    // async return(id: string) {
-    //     const book = await this.findById(id);
-
-    //     if(!book){
-    //         throw throwlhos.err_notFound("Livro não encontrado");
-    //     }
-
-    //     if (book.available >= book.quantity){
-    //         throw throwlhos.err_badRequest(
-    //             "Todos os livros já foram devolvidos."
-    //         );
-    //     }
-
-    //     return this.repository.updateById(id, {
-    //         $inc: {
-    //             available: 1,
-    //         },
-    //     });
-    // }
+        return this.repository.returnOne(id, session);
+    }
 }
 
 export { BookService };
