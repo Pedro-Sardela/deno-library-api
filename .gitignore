@@ -1,0 +1,4 @@
+.deno/
+.env
+.vscode/
+node_modules/
