@@ -30,7 +30,12 @@ export const getLibraryDB = (): mongoose.Connection => {
   if (Env.isTest) {
         return {
             model: () => ({}),
-            startSession: async () => ({ startTransaction: () => {}, endSession: () => {} })
+            startSession: async () => ({ 
+                startTransaction: () => {}, 
+                commitTransaction: async () => {},
+                abortTransaction: async () => {},
+                endSession: () => {} 
+            })
         } as any;
     }
   if (!_connection) {

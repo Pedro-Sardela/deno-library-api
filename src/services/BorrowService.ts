@@ -115,7 +115,6 @@ class BorrowService {
 
         const now = Time.now().toDate();
 
-        console.log("Tentando buscar empréstimo com ID:", borrowId);
         const session = await startLibrarySession();
         try {
             const borrow = await this.repository.findByIdWithSession(borrowId, session);
