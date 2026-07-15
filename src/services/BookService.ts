@@ -59,6 +59,11 @@ class BookService {
     }
 
     async patch(id: string, data: Partial<IBook>) {
+        const book = await this.repository.findById(id);
+
+        if (!book) {
+            throw throwlhos.err_notFound("Livro não encontrado");
+        }
 
         if (data.isbn) {
 
@@ -72,16 +77,12 @@ class BookService {
             }
         }
 
-        const book = await this.repository.updateById(
+        const updatedBook = await this.repository.updateById(
             id,
             data,
         );
 
-        if (!book) {
-            throw throwlhos.err_notFound("Livro não encontrado");
-        }
-
-        return book;
+        return updatedBook;
     }
 
 	async delete(id: string) {

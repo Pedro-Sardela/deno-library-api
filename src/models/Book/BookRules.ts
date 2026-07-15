@@ -1,7 +1,8 @@
 import is from "@zarco/isness";
-import { BaseRules } from "../../base/BaseRules.ts";
+import { BaseRules, ICheckObj } from "../../base/BaseRules.ts";
 import { isValidISBN } from "../../utilities/Isbn.ts";
 import { Time } from "../../utilities/Time.ts";
+import { throwlhos } from "../../globals/Throwlhos.ts";
 
 
 export class BookRules extends BaseRules {
@@ -69,6 +70,10 @@ export class BookRules extends BaseRules {
             },
             message: 'A quantidade disponível não pode ser maior que o estoque total.'
         });
+        this.rc.addRule('id', {
+            validator: (value: string) => is.objectId(value),
+            message: "O ID fornecido não está em um formato válido."
+        });
     }
 
     validateCreate(body: any): void {
@@ -106,5 +111,12 @@ export class BookRules extends BaseRules {
         this.validate(
             { quantity: body.quantity, isRequiredField: true }
         );
+    }
+
+    validateId(id: string | undefined): void {
+        if (!id) {
+            throw throwlhos.err_badRequest("O ID é obrigatório.");
+        }
+        this.validate({ id: id });
     }
 }

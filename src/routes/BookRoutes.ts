@@ -1,11 +1,20 @@
 import { Router } from 'express';
 import { BookController } from "../controllers/BookController.ts";
 import { auth } from "../middlewares/AuthMiddle.ts";
+import { BookRules } from "../models/Book/BookRules.ts";
+import { BookService } from "../services/BookService.ts";
+import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
+import { BookRepository } from "../models/Book/BookRepository.ts";
 
+
+const bookRepo = new BookRepository();
+const borrowRepo = new BorrowRepository();
+const bookService = new BookService(bookRepo, borrowRepo);
+
+const bookRules = new BookRules();
+const controller = new BookController(bookService, bookRules);
 
 const BookRouter = Router();
-
-const controller = new BookController();
 
 BookRouter.post("/books", auth, controller.create);
 BookRouter.patch("/books/stock/increase/:id", auth, controller.increaseStock);

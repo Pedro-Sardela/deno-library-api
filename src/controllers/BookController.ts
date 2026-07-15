@@ -6,8 +6,8 @@ import { NextFunction, Request, Response } from 'express';
 
 class BookController {
     constructor(
-        private service = new BookService(new BookRepository(), new BorrowRepository()),
-        private rules = new BookRules(),
+        private service:BookService,
+        private rules: BookRules,
     ){
         this.create = this.create.bind(this);
         this.list = this.list.bind(this);
@@ -70,6 +70,7 @@ class BookController {
 	async patch(req: Request, res: Response, next: NextFunction){
 		try {
             this.rules.validatePatch(req.body);
+            this.rules.validateId(req.params.id);
             const book =
                 await this.service.patch(
                     req.params.id,
@@ -84,6 +85,7 @@ class BookController {
 
 	async remove(req: Request, res: Response, next: NextFunction){
 		try {
+            this.rules.validateId(req.params.id);
             await this.service.delete(
                 req.params.id
             );
@@ -95,6 +97,7 @@ class BookController {
 
     async increaseStock(req: Request, res: Response, next: NextFunction){
         try {
+            this.rules.validateId(req.params.id);
             this.rules.validateStockChange(req.body);
             const book = await this.service.increaseStock(
                 req.params.id,
@@ -108,6 +111,7 @@ class BookController {
 
     async decreaseStock(req: Request, res: Response, next: NextFunction){
         try {
+            this.rules.validateId(req.params.id);
             this.rules.validateStockChange(req.body);
             const book = await this.service.decreaseStock(
                 req.params.id,
