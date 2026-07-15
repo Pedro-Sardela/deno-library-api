@@ -43,6 +43,10 @@ Essa é uma API minimalista construída com a biblioteca Express rodando no ambi
     ```
 
 
+## Documentação das rotas:
+- https://documenter.getpostman.com/view/56283428/2sBY4Mugjw
+
+
 ## Rotas do sistema
 ## API Endpoints
 
