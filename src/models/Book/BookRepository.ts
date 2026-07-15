@@ -2,16 +2,13 @@ import { BaseRepository } from '../../base/BaseRepository.ts';
 import { BookSchema } from './Book.ts';
 import { IBook } from './IBook.ts';
 import { Model, ClientSession } from 'mongoose';
-import { LibraryDB } from '../../database/db/libraryDB.ts';
+import { getLibraryDB } from '../../database/db/libraryDB.ts';
 
 class BookRepository extends BaseRepository<IBook> {
 	constructor(
-		model: Model<IBook> = LibraryDB.model<IBook>(
-			'Book',
-			BookSchema,
-		),
+		model?: Model<IBook>
 	) {
-		super(model);
+		super(model || getLibraryDB().model<IBook>('Book', BookSchema));
 	}
 	async findByIsbn(isbn: string){
 		return this.findOne({isbn})

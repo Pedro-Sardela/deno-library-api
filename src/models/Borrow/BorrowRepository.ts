@@ -2,17 +2,14 @@ import { BaseRepository } from '../../base/BaseRepository.ts';
 import { BorrowSchema } from './Borrow.ts';
 import { IBorrow } from './IBorrow.ts';
 import { Model, ClientSession, Schema } from 'mongoose';
-import { LibraryDB } from '../../database/db/libraryDB.ts';
+import { getLibraryDB } from '../../database/db/libraryDB.ts';
 
 class BorrowRepository extends BaseRepository<IBorrow> {
 	constructor(
-		model: Model<IBorrow> = LibraryDB.model<IBorrow>(
-			'Borrow',
-			BorrowSchema,
-		),
-	) {
-		super(model);
-	}
+			model?: Model<IBorrow>
+		) {
+			super(model || getLibraryDB().model<IBorrow>('Borrow', BorrowSchema));
+		}
 
 	async createWithSession(data: IBorrow, session: ClientSession){
 		return this.model.create([data], { session }).then((docs) => docs?.[0]);
