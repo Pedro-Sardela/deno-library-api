@@ -7,20 +7,18 @@ const BookRouter = Router();
 
 const controller = new BookController();
 
-BookRouter.use(auth)
+BookRouter.post("/books", auth, controller.create);
+BookRouter.patch("/books/stock/increase/:id", auth, controller.increaseStock);
+BookRouter.patch("/books/stock/decrease/:id", auth, controller.decreaseStock);
 
-BookRouter.post("/books",controller.create);
-BookRouter.patch("/books/stock/increase/:id", controller.increaseStock);
-BookRouter.patch("/books/stock/decrease/:id", controller.decreaseStock);
+BookRouter.get("/books", auth, controller.list);
 
-BookRouter.get("/books",controller.list);
+BookRouter.get("/books/:id", auth, controller.find);
 
-BookRouter.get("/books/:id",controller.find);
+BookRouter.get("/books/isbn/:isbn", auth, controller.findByIsbn);
 
-BookRouter.get("/books/isbn/:isbn",controller.findByIsbn);
+BookRouter.patch("/books/:id", auth, controller.patch);
 
-BookRouter.patch("/books/:id", controller.patch);
-
-BookRouter.delete("/books/:id", controller.remove);
+BookRouter.delete("/books/:id", auth, controller.remove);
 
 export {BookRouter};
