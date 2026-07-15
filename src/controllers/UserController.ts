@@ -1,14 +1,11 @@
 import { UserService } from "../services/UserService.ts";
 import { UserRules } from "../models/User/UserRules.ts";
 import { NextFunction, Request, Response } from 'express';
-import { UserRepository } from "../models/User/UserRepository.ts";
-import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
-
 
 class UserController {
 	constructor(
-		private service = new UserService(new UserRepository(), new BorrowRepository()),
-        private rules = new UserRules()
+		private service: UserService,
+        private rules: UserRules,
 	){
         this.create = this.create.bind(this);
         this.list = this.list.bind(this);
@@ -54,6 +51,7 @@ class UserController {
 
 	async update(req: Request, res: Response, next: NextFunction){
 		try {
+            this.rules.validateId(req.params.id);
             this.rules.validateUpdate(req.body);
             const user =
                 await this.service.update(
@@ -69,6 +67,7 @@ class UserController {
 
 	async remove(req: Request, res: Response, next: NextFunction){
 		try {
+            this.rules.validateId(req.params.id);
             await this.service.delete(
                 req.params.id
             );
