@@ -37,7 +37,9 @@ class UserService {
             ...data,
             password: passwordHash,
         });
-        return user;
+        const { password, ...userWithoutPassword } = user.toObject(); 
+
+        return userWithoutPassword;
     }
 
     async findAll(){
