@@ -1,23 +1,24 @@
-import { IBorrow, type BorrowStatus } from "../models/Borrow/IBorrow.ts";
+import { type BorrowStatus } from "../models/Borrow/IBorrow.ts";
 import { BorrowRepository } from "../models/Borrow/BorrowRepository.ts";
 import { throwlhos } from "../globals/Throwlhos.ts";
 import { BookService } from "./BookService.ts";
 import { UserService } from "./UserService.ts";
 import { startLibrarySession } from "../database/db/libraryDB.ts"
 import { Time } from "../utilities/Time.ts";
-import { Schema } from "mongoose";
-import { BookRepository } from "../models/Book/BookRepository.ts";
-import { UserRepository } from "../models/User/UserRepository.ts";
 
 class BorrowService {
     private repository: BorrowRepository;
-    private bookService = new BookService(new BookRepository(), new BorrowRepository());
-    private userService = new UserService(new UserRepository(), new BorrowRepository());
+    private bookService: BookService;
+    private userService: UserService;
 
     constructor(
-        repository = new BorrowRepository()
-    ){
+        repository: BorrowRepository,
+        bookService: BookService,
+        userService: UserService
+    ) {
         this.repository = repository;
+        this.bookService = bookService;
+        this.userService = userService;
     }
 
     async findAll(){

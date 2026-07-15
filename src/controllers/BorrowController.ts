@@ -4,8 +4,8 @@ import { NextFunction, Request, Response } from 'express';
 
 class BorrowController {
     constructor(
-        private service = new BorrowService(),
-        private rules = new BorrowRules(),
+        private service: BorrowService,
+        private rules: BorrowRules,
     ){
         this.list = this.list.bind(this);
         this.find = this.find.bind(this);
