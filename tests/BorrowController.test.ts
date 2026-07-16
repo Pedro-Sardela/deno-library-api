@@ -47,7 +47,10 @@ Deno.test({
         await controller.list(req, res, next);
 
         assertEquals(res._getStatus(), 200);
-        assertEquals(res._getResult().message, 'Lista de empréstimos recuperada');
+        assertEquals(res._getResult(), {
+                    message: 'Lista de empréstimos recuperada',
+                    data: FAKE_BORROW_LIST
+                });
         assertEquals(next.getError(), null);
     }
 });
@@ -166,7 +169,7 @@ Deno.test({
             {
                 findByIdWithSession: async (id: string, session: any) => {
                     assertExists(session);
-                    return { ...FAKE_BOOK, available: 4, quantity: 5 }; // available < quantity, ok!
+                    return { ...FAKE_BOOK, available: 4, quantity: 5 }; // available < quantity
                 },
                 returnOne: async (id: string, session: any) => {
                     assertExists(session);
@@ -210,5 +213,151 @@ Deno.test({
             data: FAKE_BORROW._id
         });
         assertEquals(next.getError(), null);
+    }
+});
+
+// ==========================================
+// TESTES NEGATIVOS
+// ==========================================
+
+Deno.test({
+    name: "BorrowController - list: Deve repassar erro ao next se nenhum empréstimo for encontrado",
+    async fn() {
+        const { controller } = makeSut({
+            findMany: async () => [] // Simula banco vazio
+        });
+        
+        const req = mockRequest({});
+        const res = mockResponse();
+        const next = createMockNext();
+
+        await controller.list(req, res, next);
+
+        const error = next.getError();
+        assertExists(error, "Deveria ter chamado o next com um erro");
+        assertEquals(error.message, "Nenhum empréstimo foi encontrado");
+        assertEquals(error.status, "NOT_FOUND");
+    }
+});
+
+Deno.test({
+    name: "BorrowController - find: Deve repassar erro ao next se empréstimo não existir",
+    async fn() {
+        const { controller } = makeSut({
+            findById: async () => null // Simula não encontrar o registro
+        });
+        
+        const req = mockRequest({ params: { id: "6a57b2b5b1a85d0858c92c98" } });
+        const res = mockResponse();
+        const next = createMockNext();
+
+        await controller.find(req, res, next);
+
+        const error = next.getError();
+        assertExists(error);
+        assertEquals(error.message, "Empréstimo não encontrado");
+        assertEquals(error.status, "NOT_FOUND");
+    }
+});
+
+Deno.test({
+    name: "BorrowController - remove: Deve repassar erro ao next se tentar remover empréstimo não finalizado (ativo)",
+    async fn() {
+        const { controller } = makeSut({
+            findById: async () => ({ ...FAKE_BORROW, status: "borrowed" }), // Empréstimo em andamento
+        });
+        
+        const req = mockRequest({ params: { id: FAKE_BORROW._id } });
+        const res = mockResponse();
+        const next = createMockNext();
+        
+        await controller.remove(req, res, next);
+
+        const error = next.getError();
+        assertExists(error);
+        assertEquals(error.message, "Apenas registros de empréstimos finalizados (devolvidos) podem ser apagados");
+        assertEquals(error.status, "BAD_REQUEST");
+    }
+});
+
+Deno.test({
+    name: "BorrowController - borrow: Deve repassar erro ao next se não houver exemplares disponíveis",
+    async fn() {
+        const { controller } = makeSut(
+            {}, 
+            {
+                findByIdWithSession: async () => ({ ...FAKE_BOOK, available: 0 }) // Estoque zerado
+            },
+            {
+                findByIdWithSession: async () => FAKE_USER // Usuário válido
+            }
+        );
+
+        const req = mockRequest({ 
+            params: { userId: FAKE_USER._id, bookId: FAKE_BOOK._id } 
+        });
+        const res = mockResponse();
+        const next = createMockNext();
+        
+        await controller.borrow(req, res, next);
+
+        const error = next.getError();
+        assertExists(error);
+        assertEquals(error.message, "Não há exemplares disponíveis.");
+        assertEquals(error.status, "BAD_REQUEST");
+    }
+});
+
+Deno.test({
+    name: "BorrowController - borrow: Deve repassar erro ao next se livro não for encontrado",
+    async fn() {
+        const { controller } = makeSut(
+            {}, 
+            {
+                findByIdWithSession: async () => null // Livro não encontrado
+            },
+            {
+                findByIdWithSession: async () => FAKE_USER // Usuário válido
+            }
+        );
+
+        const req = mockRequest({ 
+            params: { userId: FAKE_USER._id, bookId: "6a57b2b5b1a85d0858c92c98" } 
+        });
+        const res = mockResponse();
+        const next = createMockNext();
+        
+        await controller.borrow(req, res, next);
+
+        const error = next.getError();
+        assertExists(error);
+        assertEquals(error.message, "Livro não encontrado");
+        assertEquals(error.status, "NOT_FOUND");
+    }
+});
+
+Deno.test({
+    name: "BorrowController - return: Deve repassar erro ao next se tentar devolver mais exemplares que a quantidade total",
+    async fn() {
+        const { controller } = makeSut(
+            {
+                findByIdWithSession: async () => FAKE_BORROW // Empréstimo existe
+            },
+            {
+                // Livro já está com todos os exemplares devolvidos (available == quantity)
+                findByIdWithSession: async () => ({ ...FAKE_BOOK, available: 5, quantity: 5 }) 
+            }
+        );
+        
+        const req = mockRequest({ params: { id: FAKE_BORROW._id } });
+        const res = mockResponse();
+        const next = createMockNext();
+        
+        await controller.return(req, res, next);
+
+        const error = next.getError();
+        assertExists(error);
+        assertEquals(error.message, "Todos os exemplares já foram devolvidos.");
+        assertEquals(error.status, "BAD_REQUEST");
     }
 });
