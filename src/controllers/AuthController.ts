@@ -1,3 +1,4 @@
+import { throwlhos } from "../globals/Throwlhos.ts";
 import { AuthService } from "../services/AuthService.ts";
 import { NextFunction, Request, Response } from 'express';
 
@@ -12,7 +13,7 @@ class AuthController{
     async login (req: Request, res: Response, next: NextFunction){
         try {
             if(!req.body.email || !req.body.password) {
-                return res.send_badRequest('Email e senha são obrigatórios')
+                throw throwlhos.err_badRequest('Email e senha são obrigatórios');
             }
 
             const result = 
