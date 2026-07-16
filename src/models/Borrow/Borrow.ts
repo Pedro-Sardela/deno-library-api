@@ -25,8 +25,8 @@ class BorrowClass implements IBorrow {
 class BorrowSchemaClass extends BaseSchema {
     constructor(){
         super({
-            userId: { type: Schema.Types.ObjectId, required: [true, 'O Id do usuário deve ser informado']},
-            bookId: { type: Schema.Types.ObjectId, required: [true, 'O Id do livro deve ser informado']},
+            userId: { type: Schema.Types.ObjectId, ref: 'User', required: [true, 'O Id do usuário deve ser informado']},
+            bookId: { type: Schema.Types.ObjectId, ref: 'Book', required: [true, 'O Id do livro deve ser informado']},
             borrowDate: { 
                 type: Date,
                 validate: {

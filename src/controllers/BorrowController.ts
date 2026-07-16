@@ -28,6 +28,7 @@ class BorrowController {
         
         async listByUser(req: Request, res: Response, next: NextFunction){
             try {
+                this.rules.validateSingleId(req.params.userId);
                 const borrows =
                 await this.service.findByUserId(req.params.userId);
                 return res.send_ok(`Lista de empréstimos recuperada, usuário: ${req.params.userId}`, borrows);
@@ -38,6 +39,7 @@ class BorrowController {
 
         async find(req: Request, res: Response, next: NextFunction){
             try { 
+                this.rules.validateSingleId(req.params.id);
                 const borrow =
                     await this.service.findById(
                         req.params.id
@@ -50,6 +52,7 @@ class BorrowController {
         
         async listByBook(req: Request, res: Response, next: NextFunction){
             try {
+                this.rules.validateSingleId(req.params.bookId);
                 const borrows =
                     await this.service.findByBookId(req.params.bookId);
                 return res.send_ok(`Lista de empréstimos recuperada, livro: ${req.params.bookId}`, borrows);
@@ -60,6 +63,7 @@ class BorrowController {
 
         async remove(req: Request, res: Response, next: NextFunction){
             try {
+                this.rules.validateSingleId(req.params.id);
                 await this.service.delete(
                     req.params.id
                 );
@@ -70,8 +74,8 @@ class BorrowController {
         }
 
         async borrow(req: Request, res: Response, next: NextFunction){
-            this.rules.validateIds(req.params.userId, req.params.bookId);
             try {
+                this.rules.validateIds(req.params.userId, req.params.bookId);
                 const data = await this.service.borrow(
                     req.params.userId,
                     req.params.bookId
@@ -84,6 +88,7 @@ class BorrowController {
 
         async return(req: Request, res: Response, next: NextFunction){
             try {
+                this.rules.validateSingleId(req.params.id);
                 const data = await this.service.return(req.params.id);
                 return res.send_ok("Devolução realizada com sucesso", data);
             } catch (error) {

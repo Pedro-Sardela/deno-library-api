@@ -56,6 +56,7 @@ class BookController {
 
 	async find(req: Request, res: Response, next: NextFunction){
 		try { 
+            this.rules.validateId(req.params.id)
             const book =
                 await this.service.findById(
                     req.params.id
