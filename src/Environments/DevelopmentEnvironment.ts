@@ -19,18 +19,10 @@ export class DevelopmentEnvironment extends AbstractEnvironment {
 
     this.initializeDefaultMiddlewares(developmentServer)
 
-    // developmentServer.use(UnauthRouter)
     developmentServer.use(AuthRouter)
     developmentServer.use(UserRouter)
     developmentServer.use(BookRouter)
     developmentServer.use(BorrowRouter)
-    // developmentServer.use(DocsRouter)
-    // developmentServer.use(RedirectorRouter)
-    // developmentServer.use(AppRouter)
-    // developmentServer.use(APIRouter)
-    if (Env.local) {
-    //   developmentServer.use(LocalRouter)
-    }
 
     this.listen(developmentServer)
   }

@@ -63,7 +63,7 @@ export abstract class AbstractEnvironment {
     const responserror = new Responserror({ promptErrors: true })
     server.use(responserror.errorHandler)
 
-    const host = this.ip || '0.0.0.0' // não entendi onde definir o ip
+    const host = this.ip || '0.0.0.0'
     
     server.listen(this.port, host, this.listener)
   }
